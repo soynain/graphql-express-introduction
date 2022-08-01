@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulario graph ql</title>
+</head>
+
+<body>
+    <form class="form-user" onsubmit="return sendFormToGraphQl(event)">
+        <input type="text" name="usernameSearch">
+        <input type="checkbox" name="idUsuario" value="true">Mostrar id
+        <input type="checkbox" name="nombre" value="true">Mostrar nombre
+        <input type="checkbox" name="fechaNac" value="true">Mostrar fecha nacimiento
+        <input type="checkbox" name="username" value="true">Mostrar username
+        <input type="submit">
+    </form>
+    <script>
+        function sendFormToGraphQl(e) {
+            e.preventDefault();
+            var query = `query findUser($usernameSearch:Usuario,$idUsuario: Boolean=false,$nombre:Boolean=false,$fechaNac: Boolean=false,$username:Boolean=false) {
+               Usuario(username:$usernameSearch){
+                 @include(if:$idUsuario){
+                    idUsuario
+                }
+                @include(if:$nombre){
+                    nombre
+                }
+                @include(if:$fechaNac){
+                    fechaNac
+                }
+                @include(if:$username){
+                    username
+                }
+               }
+            }`;
+            const formData = document.getElementsByClassName("form-user")[0];
+            const data = Object.fromEntries(new FormData(formData).entries());
+            console.log(data);
+            fetch('/graphql', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({
+                    query,
+                    variables: {data},
+                })
+            }).then(res=>{
+                return res.json();
+            }).then(data=>{
+                console.log(data);
+            });
+        }
+    </script>
+</body>
+
+</html>

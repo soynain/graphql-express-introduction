@@ -22,9 +22,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 
 app.get('/',(req,res)=>{
-    return res.json({
-        'dsada':'das'
-    });
+    return res.render('formularioQuery');
 });
 
 app.use('/graphql',graphqlHTTP({

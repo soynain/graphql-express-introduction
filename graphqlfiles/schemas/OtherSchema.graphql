@@ -1,9 +1,7 @@
-import { buildSchema } from 'graphql';
-let exampleSchema = buildSchema(`
 type Usuario{
   idUsuario:String
   nombre:String
-  fechaNac:String
+  fechaNac:LocalDate
   username:String
 }
 
@@ -11,5 +9,3 @@ type Query {
   findUser(username:String):Usuario
   listAllUsers:[Usuario!]!
 }
-`);
-export default exampleSchema;
