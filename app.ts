@@ -7,7 +7,7 @@ import exampleSchema from './graphqlfiles/schemas/ExampleSchema';
 import root from './graphqlfiles/resolvers/QueryResolver';
 
 const app = express();
-const portDefault=3000 || process.env.PORT;
+const portDefault = 3000 || process.env.PORT;
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -21,16 +21,20 @@ app.use(cors());
 app.use(express.static(path.join(__dirname, 'public')));
 
 
-app.get('/',(req,res)=>{
-    return res.render('formularioQuery');
+app.get('/', (req, res) => {
+  return res.render('formularioQuery');
 });
 
-app.use('/graphql',graphqlHTTP({
-    schema:exampleSchema,
-    rootValue:root,
-    graphiql:true
-}));
+app.use('/graphql', graphqlHTTP(async (request, response, graphQLParams) => ({
+  schema: exampleSchema,
+  rootValue: root,
+ // graphiql: true,
+  context: {
+    request,
+    response,
+  }
+})));
 
-app.listen(portDefault, ()=>{
-  console.log('Escuchando en el puerto: ',portDefault);
+app.listen(portDefault, () => {
+  console.log('Escuchando en el puerto: ', portDefault);
 });

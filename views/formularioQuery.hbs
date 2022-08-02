@@ -6,39 +6,54 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Formulario graph ql</title>
+    <style>
+        form {
+            display: flex;
+            flex-direction: column;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+
+        .mostrarDatos {
+            display: flex;
+            flex-direction: column-reverse;
+        }
+    </style>
 </head>
 
 <body>
-    <form class="form-user" onsubmit="return sendFormToGraphQl(event)">
+    <form action="/graphql" method="get" class="form-user" >
         <input type="text" name="usernameSearch">
-        <input type="checkbox" name="idUsuario" value="true">Mostrar id
-        <input type="checkbox" name="nombre" value="true">Mostrar nombre
-        <input type="checkbox" name="fechaNac" value="true">Mostrar fecha nacimiento
-        <input type="checkbox" name="username" value="true">Mostrar username
+        <input type="checkbox" name="idUsuario">Mostrar id
+        <input type="checkbox" name="nombre">Mostrar nombre
+        <input type="checkbox" name="fechaNac">Mostrar fecha nacimiento
+        <input type="checkbox" name="username">Mostrar username
         <input type="submit">
     </form>
+    <div class="mostrarDatos"></div>
+    <button id="limpiar">Limpiar</button>
     <script>
+        /*Delete span elements*/
+        document.getElementById('limpiar').addEventListener('click', () => {
+            let dataParent = document.getElementsByClassName('mostrarDatos')[0];
+            while (dataParent.firstChild) {
+                console.log(dataParent.firstChild.nodeName);
+                dataParent.removeChild(dataParent.firstChild);
+            }
+        });
+    /*send the payload with the json values and booleans*/
         function sendFormToGraphQl(e) {
             e.preventDefault();
-            var query = `query findUser($usernameSearch:Usuario,$idUsuario: Boolean=false,$nombre:Boolean=false,$fechaNac: Boolean=false,$username:Boolean=false) {
-               Usuario(username:$usernameSearch){
-                 @include(if:$idUsuario){
-                    idUsuario
-                }
-                @include(if:$nombre){
-                    nombre
-                }
-                @include(if:$fechaNac){
-                    fechaNac
-                }
-                @include(if:$username){
-                    username
-                }
-               }
-            }`;
+            var query = "query Muestra($usernameSearch:String,$idUsuario:Boolean=false,$nombre: Boolean = false,$fechaNac:Boolean=false,$username:Boolean=false) {findUser(username: $usernameSearch){ idUsuario @include(if:$idUsuario) nombre @include(if:$nombre) fechaNac @include(if:$fechaNac) username @include(if:$username)}}";
             const formData = document.getElementsByClassName("form-user")[0];
             const data = Object.fromEntries(new FormData(formData).entries());
-            console.log(data);
+            delete data.usernameSearch;
+            /*snippet from mozilla docs to iterate object with for of*/
+            for (var [key, value] of Object.entries(data)) {
+                data[key] = true;
+            }
+            data.usernameSearch = document.getElementsByName('usernameSearch')[0].value;
+            //  console.log(data);
             fetch('/graphql', {
                 method: 'POST',
                 headers: {
@@ -47,12 +62,22 @@
                 },
                 body: JSON.stringify({
                     query,
-                    variables: {data},
+                    variables: data, //data is not pases with { } as the docs say cuz its already an object
                 })
-            }).then(res=>{
+            }).then(res => {
                 return res.json();
-            }).then(data=>{
-                console.log(data);
+            }).then(data => {
+          //      console.log(data);
+                let dataParent = document.getElementsByClassName('mostrarDatos')[0];
+                /* let spanChild = document.createElement('span');
+                 spanChild.innerText = JSON.stringify(data.data.findUser);
+                 dataParent.appendChild(spanChild);*/
+                for (let [key, values] of Object.entries(data.data.findUser)) {
+           //         console.log(values, ' sadasd')
+                    let spanChild = document.createElement('span');
+                    spanChild.innerText = key + ' ' + JSON.stringify(data.data.findUser[key]);
+                    dataParent.appendChild(spanChild);
+                }
             });
         }
     </script>
